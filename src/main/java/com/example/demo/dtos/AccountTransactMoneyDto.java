@@ -4,8 +4,9 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class AccountSendMoneyDto {
+public class AccountTransactMoneyDto {
     private String accountHolder;
     private int accountNumber;
     private Double amount;
+	private String pin;
 }

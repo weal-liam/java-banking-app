@@ -5,7 +5,6 @@ import com.example.demo.dtos.AccountDto;
 import com.example.demo.dtos.AccountRequestDto;
 import com.example.demo.entities.AccountEntity;
 import com.example.demo.mappers.AccountMapper;
-import com.example.demo.models.Account;
 import com.example.demo.repositories.AccountRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -40,24 +39,20 @@ public class BankController {
     }
 
      @PostMapping("/accounts")
-    public List<AccountDto> createAccount(@RequestBody AccountRequestDto request){
-        Account account = accountMapper.toAccount(request);
+    public AccountDto createAccount(@RequestBody AccountRequestDto request){
         bankServer.createAccount(
-                account.getAccountHolder(),
-                account.getAccountBalance(),
-                account.getEmail(),
-                account.getPhoneNumber(),
-                account.getPin()
+                request.getAccountHolder(),
+                request.getAccountBalance(),
+                request.getEmail(),
+                request.getPhoneNumber(),
+                request.getPin()
         );
         AccountEntity entity = bankServer.getAccounts().stream()
-                .filter(accountEntity -> accountEntity.getAccountHolder().equals(account.getAccountHolder()))
+                .filter(accountEntity -> accountEntity.getAccountHolder().equals(request.getAccountHolder()))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         accountRepository.save(entity);
-        return accountRepository.findAll()
-                .stream()
-                .map(accountMapper::toDto)
-                .toList();
+        return accountMapper.toDto(entity);
     }
 }
 

@@ -15,7 +15,7 @@ import com.example.demo.entities.*;
 import com.example.demo.mappers.TransactionMapper;
 import com.example.demo.models.Account;
 import com.example.demo.repositories.*;
-import com.example.demo.dtos.AccountSendMoneyDto;
+import com.example.demo.dtos.AccountTransactMoneyDto;
 
 @AllArgsConstructor
 @RestController
@@ -27,10 +27,10 @@ public class AccountController {
     private final TransactionMapper transactionMapper;
     @PatchMapping("/deposit")
     public AccountDto makeDeposit(
-    @RequestBody Double deposit,@PathVariable String accountHolder) {
+    @RequestBody AccountTransactMoneyDto dto,@PathVariable String accountHolder) {
         AccountEntity entity = accountRepository.findByAccountHolder(accountHolder);
         Account account = accountMapper.toAccount(entity);
-        account.deposit(deposit);
+        account.deposit(dto.getAmount());
         entity.setAccountBalance(account.getAccountBalance());
         accountRepository.save(entity);
         return accountMapper.toDto(entity);
@@ -38,10 +38,10 @@ public class AccountController {
 
     @PatchMapping("/withdraw")
     public AccountDto makeWithdraw(
-    @RequestBody Double withdrawal,@PathVariable String  accountHolder){
+    @RequestBody AccountTransactMoneyDto dto,@PathVariable String  accountHolder){
         AccountEntity entity = accountRepository.findByAccountHolder(accountHolder);
         Account account = accountMapper.toAccount(entity);
-        account.withdraw(withdrawal);
+        account.withdraw(dto.getAmount());
         entity.setAccountBalance(account.getAccountBalance());
         accountRepository.save(entity);
         return accountMapper.toDto(entity);
@@ -49,7 +49,7 @@ public class AccountController {
 
     @PatchMapping("/send-money")
     public TransactionDto sendMoney(
-    @RequestBody AccountSendMoneyDto receiver,@PathVariable String accountHolder){
+    @RequestBody AccountTransactMoneyDto receiver,@PathVariable String accountHolder){
         AccountEntity entity = accountRepository.findByAccountHolder(accountHolder);
         List<AccountEntity> accounts = accountRepository.findAll();
         Account account = accountMapper.toAccount(entity);
