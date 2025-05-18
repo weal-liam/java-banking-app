@@ -36,8 +36,4 @@ public class Bank {
         accounts.add(newAccount);
         System.out.println("You have successfully been registered! \nThank you for choosing our services.");
     }
-
-    public void setReceipient(String receiver, int accountNumber) {
-        transaction.getReceiverAccount(accounts, receiver, accountNumber);
-    }
 }

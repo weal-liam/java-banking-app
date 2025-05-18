@@ -4,13 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 import java.util.ArrayList;
 import com.example.demo.entities.AccountEntity;
 import com.example.demo.entities.TransactionEntity;
 import com.example.demo.mappers.TransactionMapper;
-import com.example.demo.repositories.AccountRepository;
 
 @Component // Marks this class as a Spring-managed bean
 @Data
@@ -26,14 +26,15 @@ public class Account {
     private String pin;
 
     @Autowired
+	//JsonIgnore
     private Transaction transaction; // Injected by Spring
 
     private TransactionMapper transactionMapper;
-    private AccountRepository accountRepository;
 
     public Account() {
         // Default constructor for Spring
         transactions = new ArrayList<>();
+		transactionMapper = Mappers.getMapper(TransactionMapper.class);
     }
 
     public Account(String accountHolder, int accountNumber, Double accountBalance, String email, Long phoneNumber, String pin) {
@@ -50,7 +51,7 @@ public class Account {
     }
 
     public void withdraw(Double withdrawal) {
-                transaction = new Transaction(this.accountNumber, withdrawal, (int) Math.floor(1000000 * Math.random()), "withdraw", "inProgress");
+                transaction = new Transaction(this.accountNumber, withdrawal, (int) Math.floor(1000000 * Math.random()), "withdraw", "inProgress"/*,date.now()*/);
                 transaction.transact(withdrawal, this.accountHolder, this.accountNumber);
                 Double balance = this.accountBalance - ((0.1 * withdrawal) + withdrawal);
                 if (balance < 20000) {
@@ -60,27 +61,25 @@ public class Account {
                 } else {
                     System.out.println(this.accountHolder + this.accountNumber + " has withdrawn " + withdrawal + "\n"
                             + "You now have a balance of " + balance);
-                    setAccountBalance(balance);
+                    this.setAccountBalance(balance);
                     transaction.setStatus("success");
                     this.transactions.add(transactionMapper.toEntity(transaction));
                 }
             }
 
     public void deposit(Double deposit) {
-            transaction = new Transaction(this.accountNumber, deposit, (int) Math.floor(1000000 * Math.random()), "deposit", "inProgress");
+            transaction = new Transaction(this.accountNumber, deposit, (int) Math.floor(1000000 * Math.random()), "deposit", "inProgress"/*,date.now()*/);
             transaction.transact(deposit, this.accountHolder, this.accountNumber);
-            setAccountBalance(this.accountBalance + deposit);
+            this.setAccountBalance(this.accountBalance + deposit);
             System.out.println(this.accountHolder + this.accountNumber + " has made a deposit of " + deposit + "\n"
                     + "Your new account balance is " + this.accountBalance);
             transaction.setStatus("success");
             this.transactions.add(transactionMapper.toEntity(transaction));
         }
 
-    public void sendMoney(List<AccountEntity> accounts, Double amount, String receiver, int receiverAccountNumber) {
-            transaction = new Transaction(this.getAccountNumber(), amount, (int) Math.floor(1000000 * Math.random()), "transfer", "inProgress");
+    public void sendMoney(AccountEntity recipient, Double amount) {
+            transaction = new Transaction(this.getAccountNumber(), amount, (int) Math.floor(1000000 * Math.random()), "transfer", "inProgress"/*,date.now()*/);
             transaction.transact(amount, this.getAccountHolder(), this.getAccountNumber());
-            transaction.getReceiverAccount(accounts, receiver, receiverAccountNumber);
-            AccountEntity recipient = transaction.getRecipient();
             Double tax = (Double) 0.1 * amount;
             Double balance = this.getAccountBalance() - (amount + tax);
             this.setAccountBalance(balance);
@@ -88,8 +87,10 @@ public class Account {
             recipient.setAccountBalance(gain);
             System.out.println(this.getAccountHolder() + this.getAccountNumber() + " has sent " + amount + " to " + recipient.getAccountHolder()+ " at a fee of " + tax);
             transaction.setStatus("Success");
-            this.transactions.add(transactionMapper.toEntity(transaction));
-            recipient.getTransactions().add(transactionMapper.toEntity(transaction));
-            accountRepository.save(recipient);
+			TransactionEntity entity = transactionMapper.toEntity(transaction);
+			entity.setRecipient(recipient.getAccountHolder());
+			entity.setReceiverAccountNumber(recipient.getAccountNumber());
+            this.transactions.add(entity);
+            recipient.getTransactions().add(entity);
         }
 }

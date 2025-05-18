@@ -16,7 +16,7 @@ import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 @RestController
-@RequestMapping("/transactions")
+@RequestMapping("accounts/{accountHolder}/transactions")
 public class TransactionController {
     private final TransactionMapper transactionMapper;
     private final TransactionRepository transactionRepository;
@@ -24,7 +24,8 @@ public class TransactionController {
     @GetMapping
     public List<TransactionDto> viewSpecificTransaction(
         @RequestParam(name = "sort", required = false, defaultValue = "timestamp") String sortBy,
-		@RequestParam(name = "dir", required = false,defaultValue = "desc") String direction
+		@RequestParam(name = "dir", required = false,defaultValue = "desc") String direction,
+		@PathVariable String accountHolder
     ){	
 		Sort sort = direction.equalsIgnoreCase("desc")? Sort.by(sortBy).descending():Sort.by(sortBy).ascending();
 		/*

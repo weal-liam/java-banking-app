@@ -1,6 +1,5 @@
 package com.example.demo.controllers;
 
-import java.util.List;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -51,12 +50,16 @@ public class AccountController {
     public TransactionDto sendMoney(
     @RequestBody AccountTransactMoneyDto receiver,@PathVariable String accountHolder){
         AccountEntity entity = accountRepository.findByAccountHolder(accountHolder);
-        List<AccountEntity> accounts = accountRepository.findAll();
+        AccountEntity recipient = accountRepository.findByAccountHolder(receiver.getAccountHolder());
         Account account = accountMapper.toAccount(entity);
-        account.sendMoney(accounts,receiver.getAmount(),receiver.getAccountHolder(),receiver.getAccountNumber());
+		//database transaction start
+        account.sendMoney(recipient,receiver.getAmount());
         entity.setAccountBalance(account.getAccountBalance());
+		//database transaction stop
         accountRepository.save(entity);
-        TransactionEntity transaction = transactionRepository.findByAccountNumber(account.getAccountNumber());
+		accountRepository.save(recipient);
+		TransactionEntity transaction = account.getTransactions().get(account.getTransactions().size()-1);
+		transactionRepository.save(transaction);
         return transactionMapper.toDto(transaction);
     }
     
