@@ -6,9 +6,6 @@ import lombok.Data;
 
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import com.example.demo.entities.AccountEntity;
-
 @Component // Marks this class as a Spring-managed bean
 @Data
 @AllArgsConstructor

@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 public class TransactionDto {
 	private int transactionId;
-	private int myAccountNumber;
+	private int AccountNumber;
 	//ignore if null
     private String recipient;
 	//ignore if null
